@@ -1,0 +1,107 @@
+
+1.1
+	First initialize building enviroment ->
+
+sudo dpkg --add-architecture i386 && sudo apt-get update
+sudo apt install tofrodos gawk xvfb git libncurses5-dev tftpd zlib1g-dev zlib1g-dev:i386 libssl-dev flex bison chrpath socat autoconf libtool texinfo gcc-multilib libsdl1.2-dev libglib2.0-dev screen pax xterm bc
+./petalinux-<petalinux-version>-installer.run -d ./petalinux-build/
+source ./petalinux-build/settings.sh
+petalinux-create --type project --template <template, ex)zynqMP> --name <user-project-name>
+
+
+1.2
+	Initialize building enviroment ->
+source ./petalinux-build/settings.sh
+cd <user-project-root>
+
+
+
+
+2.1
+	First build order ->
+petalinux-config --get-hw-description <user-fpga-directory>
+	1. Subsystem AUTO Hardware Settings → Flash Settings
+	2. u-boot Configuration → u-boot script configuration → QSPI/OSPI image offsets
+	ext1. Image Packaging Configuration
+	ext2. Firmware Version Configuration
+
+petalinux-config -c u-boot
+	1. ARM architecture: Boot script offset
+	2. Environment: Environment...
+	3. Environment: Environment offset
+	ext. Command line interface: Shell prompt
+
+petalinux-config -c rootfs
+	ext. PetaLinux RootFS Settings
+
+vi project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi	#if need
+petalinux-build
+
+
+2.2
+	Build order ->
+petalinux-config --get-hw-description <user-fpga-directory>
+petalinux-config -c u-boot
+petalinux-build
+
+
+2.3
+	Build uboot.env ->
+	Use mkenvimage
+vi env.txt
+	The input file is in format:
+		key1=value1
+		key2=value2
+		...
+	Empty lines are skipped, and lines with a # in the first
+	column are treated as comments (also skipped).
+
+mkenvimage -s <env-size> -o <env-name> env.txt
+
+	Use u-boot tftpput
+saveenv
+sf probe; sf read 0x100000 <env-offset> <env-size>; tftpput 0x100000 <env-size> ${serverip}:<env-name>
+
+
+2.4
+	Packaging ->
+	u-boot only
+petalinux-package --boot --force --format BIN --fpga --u-boot --add uboot.env --offset <env-offset> -o uboot.bin
+
+	Booting using Fit image (No env)
+petalinux-package --boot --force --format BIN --fpga --u-boot --kernel image.ub --offset <kernel-offset> --boot-script --offset <bootsrc-offset>
+
+	Booting using Separate images (NOT WORKING) # Have to use u-boot tftpboot
+petalinux-package --boot --force --format BIN --fpga --u-boot --kernel Image.gz --offset <kernel-offset> --boot-script --offset <bootsrc-offset> --add rootfs.cpio.gz.u-boot --offset <rootfs-offset>
+
+
+
+
+3.1
+	Initialize building kernel driver enviroment ->
+cd <user-project-root>
+petalinux-create --type modules --enable --name <user-module-name>
+cat >> ./project-spec/meta-user/conf/petalinuxbsp.conf <<-EOF
+	RM_WORK_EXCLUDE += "<user-module-name>"
+EOF
+cd ./project-spec/meta-user/recipes-modules/<user-module-name>
+vi ./files/<user-module-name>.c
+
+
+3.2
+	Build kernel driver (module) ->
+	Command List
+petalinux-build -c <user-module-name> -x listtasks
+
+	Build
+petalinux-build -c <user-module-name>
+
+	Rebuild
+petalinux-build -c <user-module-name> -x do_clean
+petalinux-build -c <user-module-name>
+
+	Install
+petalinux-build -c <user-module-name> -x do_install
+
+	Output Directory
+<user-project-root>/build/tmp/work/<machine-name>-xilinx-linux/<user-module-name>/1.0-r0/sysroot-destdir/lib/modules/<petalinux-version>/extra/<user-module-name>.ko

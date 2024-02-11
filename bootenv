@@ -1,0 +1,27 @@
+setenv ipaddr 192.168.10.60
+setenv netmask 255.255.248.0
+setenv gatewayip 192.168.10.1
+setenv serverip 192.168.10.53
+
+setenv bootbin BOOT.BIN
+setenv ubootfile uboot.bin
+setenv ubootenvfile uboot.env
+setenv kernelfile Image.gz
+setenv ramdiskfile rootfs.cpio.gz.u-boot
+setenv rootfsfile rootfs.jffs2
+setenv fitimagefile image.ub
+setenv sparefile spare.jffs2
+setenv bootscrfile boot.scr
+
+setenv updateall 'sf probe; sf erase 0 0x4000000; tftpboot 0x100000 ${bootbin}; sf write 0x100000 0 ${filesize}'
+setenv updateboot 'sf probe; sf erase 0 0x1240000; tftpboot 0x100000 ${ubootfile}; sf write 0x100000 0 ${filesize}'
+setenv updatebootenv 'sf probe; sf erase 0x1240000 0x40000; tftpboot 0x100000 ${ubootenvfile}; sf write 0x100000 0x1240000 ${filesize}'
+setenv updatekernel 'sf probe; sf erase 0x1280000 0xA00000; tftpboot 0x100000 ${kernelfile}; sf write 0x100000 0x1280000 ${filesize}'
+setenv updateramdisk 'sf probe; sf erase 0x1C80000 0x1900000; tftpboot 0x100000 ${ramdiskfile}; sf write 0x100000 0x1C80000 ${filesize}'
+setenv updaterootfs 'sf probe; sf erase 0x1C80000 0x2300000; tftpboot 0x100000 ${rootfsfile}; sf write 0x100000 0x1C80000 ${filesize}'
+setenv updatefitimage 'sf probe; sf erase 0x1280000 0x2300000; tftpboot 0x100000 ${fitimagefile}; sf write 0x100000 0x1280000 ${filesize}'
+setenv updatespare 'sf probe; sf erase 0x3580000 0xA00000; tftpboot 0x100000 ${sparefile}; sf write 0x100000 0x3580000 ${filesize}'
+setenv updatebootscr 'sf probe; sf erase 0x3F80000 0x80000; tftpboot 0x100000 ${bootscrfile}; sf write 0x100000 0x3F80000 ${filesize}'
+
+setenv uploadbootenv 'sf probe; sf read 0x100000 0x1240000 0x40000; tftpput 0x100000 0x40000 ${serverip}:${ubootenvfile}'
+setenv uploadspare 'sf probe; sf read 0x100000 0x3580000 0xA00000; tftpput 0x100000 0xA00000 ${serverip}:${sparefile}'

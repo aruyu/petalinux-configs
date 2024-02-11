@@ -1,0 +1,81 @@
+/include/ "system-conf.dtsi"
+/ {
+};
+
+/* UltraScale: gem3, Zynq: gem0 */
+&gem3 {
+    status = "okay";
+    phy-handle = <&phy0>;
+    phy-mode = "rgmii-id";
+    pinctrl-names = "default";
+    pinctrl-0 = <&pinctrl_gem3_default>;
+
+    /* PHY ADDR: 12 */
+    phy0: phy@12 {
+        reg = <12>;
+        ti,rx-internal-delay = <0x8>;
+        ti,tx-internal-delay = <0xa>;
+        ti,fifo-depth = <0x1>;
+        ti,rxctrl-strap-worka;
+    };
+};
+
+&pinctrl0 {
+    status = "okay";
+
+    pinctrl_gem3_default: gem3-default {
+        mux {
+            function = "ethernet3";
+            groups = "ethernet3_0_grp";
+        };
+
+        conf {
+            groups = "ethernet3_0_grp";
+/*
+            slew-rate = <SLEW_RATE_SLOW>;
+            io-standard = <IO_STANDARD_LVCMOS18>;
+*/
+        };
+
+        conf-rx {
+            pins = "MIO70", "MIO71", "MIO72", "MIO73", "MIO74", "MIO75";
+            bias-high-impedance;
+            low-power-disable;
+        };
+
+        conf-tx {
+            pins = "MIO64", "MIO65", "MIO66", "MIO67", "MIO68", "MIO69";
+            bias-disable;
+            low-power-enable;
+        };
+
+        mux-mdio {
+            function = "mdio3";
+            groups = "mdio3_0_grp";
+        };
+
+        conf-mdio {
+            groups = "mdio3_0_grp";
+/*
+            slew-rate = <SLEW_RATE_SLOW>;
+            io-standard = <IO_STANDARD_LVCMOS18>;
+*/
+            bias-disable;
+        };
+    };
+};
+
+
+&qspi {
+    status = "okay";
+
+    flash0: flash@0 {
+        compatible = "n25q512a", "micron,m25p80";
+        reg = <0x0>;
+        spi-tx-bus-width=<1>;
+        spi-rx-bus-width=<4>;
+        #address-cells = <1>;
+        #size-cells = <1>;
+        spi-max-frequency = <108000000>;
+    };
+};
