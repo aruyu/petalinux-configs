@@ -65,7 +65,10 @@ sf probe; sf read 0x100000 <env-offset> <env-size>; tftpput 0x100000 <env-size> 
 
 2.4
 	Packaging ->
-	u-boot only
+	u-boot only (No env)
+petalinux-package --boot --force --format BIN --fpga --u-boot -o uboot.bin
+
+	u-boot only (With env)
 petalinux-package --boot --force --format BIN --fpga --u-boot --add uboot.env --offset <env-offset> -o uboot.bin
 
 	Booting using Fit image (No env)
