@@ -25,3 +25,6 @@ setenv updatebootscr 'sf probe; sf erase 0x3F80000 0x80000; tftpboot 0x100000 ${
 
 setenv uploadbootenv 'sf probe; sf read 0x100000 0x1240000 0x40000; tftpput 0x100000 0x40000 ${serverip}:${ubootenvfile}'
 setenv uploadspare 'sf probe; sf read 0x100000 0x3580000 0xA00000; tftpput 0x100000 0xA00000 ${serverip}:${sparefile}'
+
+setenv bootfitimage 'tftpboot 0x10000000 ${fitimagefile}; bootm 0x10000000'
+setenv bootramdisk 'tftpboot 0x00200000 ${kernelfile}; tftpboot 0x04000000 ${ramdiskfile}; booti 0x00200000 0x04000000 0x00100000'
