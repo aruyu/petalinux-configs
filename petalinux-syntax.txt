@@ -22,7 +22,7 @@ cd <user-project-root>
 petalinux-config --get-hw-description <user-fpga-directory>
 	1. Subsystem AUTO Hardware Settings → Flash Settings
 	2. u-boot Configuration → u-boot script configuration → QSPI/OSPI image offsets
-	ext1. Image Packaging Configuration
+	ext1. Image Packaging Configuration → (INITRD or JFFS2, if=JFFS2 then=set erase_block)
 	ext2. Firmware Version Configuration
 
 petalinux-config -c u-boot
@@ -31,22 +31,27 @@ petalinux-config -c u-boot
 	3. Environment: Environment offset
 	ext. Command line interface: Shell prompt
 
+petalinux-config -c kernel (JFFS2)
+	1. File systems → Miscellaneous filesystems → [ ] JFFS2 summary support (disable)
+
 petalinux-config -c rootfs
 	ext. PetaLinux RootFS Settings
 
-vi project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi	#if need
+vi project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi		#if need
 petalinux-build
 
 
 2.2
 	Build order ->
 petalinux-config --get-hw-description <user-fpga-directory>
-petalinux-config -c u-boot
 petalinux-build
+
+petalinux-config -c <component>
+petalinux-build -c <component>
 
 
 2.3
-	Build uboot.env ->
+	Building u-boot env ->
 	Use mkenvimage
 vi env.txt
 	The input file is in format:
@@ -74,7 +79,7 @@ petalinux-package --boot --force --format BIN --fpga --u-boot --add uboot.env --
 	Booting using Fit image (No env)
 petalinux-package --boot --force --format BIN --fpga --u-boot --kernel image.ub --offset <kernel-offset> --boot-script --offset <bootsrc-offset>
 
-	Booting using Separate images (NOT WORKING) # Have to use u-boot tftpboot
+	Booting using Separate images (NOT WORKING)		# Have to use u-boot tftpboot
 petalinux-package --boot --force --format BIN --fpga --u-boot --kernel Image.gz --offset <kernel-offset> --boot-script --offset <bootsrc-offset> --add rootfs.cpio.gz.u-boot --offset <rootfs-offset>
 
 
