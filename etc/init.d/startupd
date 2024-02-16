@@ -1,0 +1,58 @@
+#!/bin/sh
+#==
+#   NOTE      - startupd
+#   Author    - Chae Lee-Jin
+#
+#   Created   - 2024.02.14
+#   Github    - https://github.com/aruyu
+#   Contact   - vine9151@gmail.com
+#/
+
+
+
+if [[ $EUID -ne 0 ]]; then
+  echo "This service must be run as ROOT!"
+  exit 1
+fi
+
+
+case "$1" in
+  start)
+    echo "Start startup script."
+
+    chmod a=rx,u+ws /usr/bin/sudo
+
+    mkdir -p /STARTUP
+    mount -t jffs2 /dev/mtdblock4 /STARTUP
+    sh /STARTUP/startup_script.sh
+
+    echo "."
+    ;;
+
+  stop)
+    echo "Stop startup script."
+
+    sync; sync; sync; sync;
+    umount /STARTUP
+
+    echo "."
+    ;;
+
+  restart)
+    echo "Restart startup script."
+
+    sync; sync; sync; sync;
+    umount /STARTUP
+
+    mount -t jffs2 /dev/mtdblock4 /STARTUP
+    sh /STARTUP/startup_script.sh
+
+    echo "."
+    ;;
+
+  *)
+    echo "Use service startupd {start|stop|restart}"
+    exit 1
+esac
+
+exit 0
