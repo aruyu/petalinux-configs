@@ -72,10 +72,10 @@ if [[ $PWD != *"init.d" ]]; then
 fi
 
 
-script_notify_println "Change mode for startupd."
+script_notify_println "Start changing mode."
 
-chmod a=rx startupd || error_exit "Change mode failed."
-chmod u=rwx startupd || error_exit "Change mode failed."
+chmod a=rx startupd syncp || error_exit "Change mode failed."
+chmod u=rwx startupd syncp || error_exit "Change mode failed."
 
 script_notify_println "Start manually chkconfig --level 0 1 2 3 4 5 6."
 
@@ -88,6 +88,10 @@ ln -s ../init.d/startupd ../rc4.d/S20startupd || error_exit "Create link in rc4.
 ln -s ../init.d/startupd ../rc5.d/S20startupd || error_exit "Create link in rc5.d failed."
 ln -s ../init.d/startupd ../rc6.d/K20startupd || error_exit "Create link in rc6.d failed."
 
+script_notify_println "Install additional apps."
+
+mv ../init.d/syncp ../../bin/
+
 script_notify_println "All successfully done."
 
 
@@ -98,13 +102,15 @@ while true; do
     [Yy] )
       rm ../init.d/install.sh
       script_notify_println "Deleted 'install.sh'."
-      break;;
+      break
+      ;;
 
     [N] )
       script_notify_println "Didn't delete 'install.sh'."
-      break;;
+      break
+      ;;
 
     * )
-      script_error_println "Wrong answer. (y/N)";;
+      script_error_println "Wrong answer. (y/N)"
   esac
 done

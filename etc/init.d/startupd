@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #==
 #   NOTE      - startupd
 #   Author    - Chae Lee-Jin
@@ -10,9 +10,52 @@
 
 
 
-if [[ $EUID -ne 0 ]]; then
-  echo "This service must be run as ROOT!"
+function create_script()
+{
+  cat > $1 <<-EOF
+	#!/bin/bash
+
+
+	echo "Startup script test."
+	date > /STARTUP/log
+
+	#IP SETTING
+	if [[ -f "/STARTUP/interfaces" ]]; then
+	  echo "Set IP interfaces from spare partition."
+	  cp /STARTUP/interfaces /etc/network/
+	  service networking restart
+	else
+	  echo "Copy IP interfaces to spare partition."
+	  cp /etc/network/interfaces /STARTUP/
+	fi
+
+	#SSH DROPBEAR SETTING
+	if [[ -f "/STARTUP/dropbear_rsa_host_key" ]]; then
+	  echo "Set dropbear ssh key from spare partition."
+	  cp /STARTUP/dropbear_rsa_host_key /etc/dropbear/
+	  service dropbear restart
+	else
+	  echo "Copy dropbear ssh key to spare partition."
+	  cp /etc/dropbear/dropbear_rsa_host_key /STARTUP/
+	fi
+EOF
+}
+
+function error_exit()
+{
+  echo "[ERROR] $1"
   exit 1
+}
+
+
+
+
+#==
+#   Starting codes in blew
+#/
+
+if [[ $EUID -ne 0 ]]; then
+  error_exit "This service must be run as ROOT!"
 fi
 
 
@@ -23,36 +66,42 @@ case "$1" in
     chmod a=rx,u+ws /usr/bin/sudo
 
     mkdir -p /STARTUP
-    mount -t jffs2 /dev/mtdblock4 /STARTUP
+    mount -t jffs2 /dev/mtdblock4 /STARTUP || error_exit "Mounting JFFS2 failed."
+
+    if [[ ! -e "/STARTUP/startup_script.sh" ]]; then
+      echo "Not found startup script."
+      create_script "/STARTUP/startup_script.sh" || error_exit "Create startup script failed."
+      echo "Startup script created."
+    fi
+
     sh /STARTUP/startup_script.sh
 
-    echo "."
+    echo "DONE."
     ;;
 
   stop)
     echo "Stop startup script."
 
     sync; sync; sync; sync;
-    umount /STARTUP
+    umount -R /STARTUP || error_exit "Unmounting JFFS2 failed."
 
-    echo "."
+    echo "DONE."
     ;;
 
   restart)
     echo "Restart startup script."
 
     sync; sync; sync; sync;
-    umount /STARTUP
+    umount -R /STARTUP || error_exit "Unmounting JFFS2 failed."
 
-    mount -t jffs2 /dev/mtdblock4 /STARTUP
-    sh /STARTUP/startup_script.sh
+    mount -t jffs2 /dev/mtdblock4 /STARTUP || error_exit "Mounting JFFS2 failed."
+    sh /STARTUP/startup_script.sh || create_script "/STARTUP/startup_script.sh" || error_exit "Create startup script failed."
 
-    echo "."
+    echo "DONE."
     ;;
 
   *)
-    echo "Use service startupd {start|stop|restart}"
-    exit 1
+    error_exit "Use service startupd {start|stop|restart}"
 esac
 
 exit 0
