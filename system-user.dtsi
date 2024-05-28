@@ -2,6 +2,7 @@
 / {
 };
 
+
 /* UltraScale: gem3, Zynq: gem0 */
 &gem3 {
     status = "okay";
@@ -66,8 +67,11 @@
 };
 
 
+#if 0
 &qspi {
     status = "okay";
+    is-dual = <0>;
+    num-cs = <1>;
 
     flash0: flash@0 {
         compatible = "n25q512a", "micron,m25p80";
@@ -79,3 +83,23 @@
         spi-max-frequency = <108000000>;
     };
 };
+
+#else
+&qspi {
+    status = "okay";
+    is-dual = <1>;
+    num-cs = <2>;
+
+    flash0: flash@0 {
+        compatible = "m25p80", "jedec,spi-nor";
+        reg = <0x0>, <0x1>;                                          /* REG configuration needed */
+        parallel-memories = /bits/ 64 <0x0 0x4000000 0x0 0x4000000>; /* 64MB */
+        spi-tx-bus-width = <4>;                                      /* WIDTH configuration needed */
+        spi-rx-bus-width = <4>;
+        #address-cells = <1>;
+        #size-cells = <1>;
+        spi-max-frequency = <108000000>;
+    };
+};
+
+#endif
