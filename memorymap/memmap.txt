@@ -27,3 +27,12 @@ mtd1:	0x01240000	0x00040000	0x00010000	"bootenv"
 mtd2:	0x01280000	0x00A00000	0x00010000	"kernel"
 mtd3:	0x01C80000	0x02300000	0x00010000	"jffs2"
 mtd4:	0x03F80000	0x00080000	0x00010000	"bootsrc"
+
+
+
+0x000000000000-0x000001e00000 : "qspi-boot"
+0x000001e00000-0x000001e40000 : "qspi-bootenv"
+0x000001e40000-0x000004240000 : "qspi-kernel"
+
+sf probe; sf erase 0 0x1e00000; tftpboot 0x100000 uboot.bin; sf write 0x100000 0 ${filesize}
+sf probe; sf erase 0x1e00000 0x40000; tftpboot 0x100000 uboot.env; sf write 0x100000 0x1e00000 ${filesize}
