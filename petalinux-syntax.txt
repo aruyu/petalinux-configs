@@ -22,7 +22,10 @@ cd <user-project-root>
 petalinux-config --get-hw-description <user-fpga-directory>
 	1. Subsystem AUTO Hardware Settings → Flash Settings
 	2. u-boot Configuration → u-boot script configuration → QSPI/OSPI image offsets
-	ext1. Image Packaging Configuration → (INITRD or JFFS2, if=JFFS2 then=set erase_block)
+	ext1-1. Image Packaging Configuration → (INITRD or JFFS2, if=JFFS2 then=set erase_block)
+	ext1-2. Image Packaging Configuration → INITRAMFS/INITRD Image name
+		(petalinux-image-minimal)
+		(petalinux-initramfs-image)
 	ext2. Firmware Version Configuration
 
 petalinux-config -c u-boot
@@ -35,9 +38,18 @@ petalinux-config -c kernel (JFFS2)
 	1. File systems → Miscellaneous filesystems → [ ] JFFS2 summary support (disable)
 
 petalinux-config -c rootfs
-	ext. PetaLinux RootFS Settings
+	1. Image Features -> Init-manager (sysvinit or systemd)
+	ext. PetaLinux RootFS Settings (busybox)
 
-vi project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi		#if need
+cat >> ./project-spec/meta-user/conf/petalinuxbsp.conf <<-EOF
+	INIT_MANAGER_DEFAULT:forcevariable = "sysvinit"
+EOF
+
+petalinux-config -c busybox
+	ext. PetaLinux RootFS busybox Settings (flashcp)
+
+
+vi ./project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi		#if need
 petalinux-build
 
 
