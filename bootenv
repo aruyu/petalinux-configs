@@ -1,30 +1,77 @@
-setenv ipaddr 192.168.0.2
+setenv ipaddr 192.168.0.102
 setenv netmask 255.255.255.0
 setenv gatewayip 192.168.0.254
 setenv serverip 192.168.0.80
+setenv tftpdir bamr
+
 
 setenv bootbin BOOT.BIN
-setenv bootfile uboot.bin
-setenv bootenvfile uboot.env
-setenv kernelfile Image.gz
-setenv ramdiskfile rootfs.cpio.gz.u-boot
-setenv rootfsfile rootfs.jffs2
 setenv fitimagefile image.ub
-setenv sparefile spare.jffs2
+setenv jffsfile rootfs.jffs2
+
+setenv bootfile uboot.bin
+setenv bootfile_offset 0x00000000
+setenv bootfile_size 0x00200000
+
+setenv bootenvfile uboot.env
+setenv bootenvfile_offset 0x00260000
+setenv bootenvfile_size 0x00020000
+
 setenv bootscrfile boot.scr
+setenv bootscrfile_offset 0x00200000
+setenv bootscrfile_size 0x00020000
 
-setenv updateall 'sf probe; sf erase 0 0x4000000; tftpboot 0x100000 ${bootbin}; sf write 0x100000 0 ${filesize}'
-setenv updateboot 'sf probe; sf erase 0 0x1240000; tftpboot 0x100000 ${bootfile}; sf write 0x100000 0 ${filesize}'
-setenv updatebootenv 'sf probe; sf erase 0x1240000 0x40000; tftpboot 0x100000 ${bootenvfile}; sf write 0x100000 0x1240000 ${filesize}'
-setenv updatekernel 'sf probe; sf erase 0x1280000 0xA00000; tftpboot 0x100000 ${kernelfile}; sf write 0x100000 0x1280000 ${filesize}'
-setenv updateramdisk 'sf probe; sf erase 0x1C80000 0xF00000; tftpboot 0x100000 ${ramdiskfile}; sf write 0x100000 0x1C80000 ${filesize}'
-setenv updaterootfs 'sf probe; sf erase 0x1C80000 0x2300000; tftpboot 0x100000 ${rootfsfile}; sf write 0x100000 0x1C80000 ${filesize}'
-setenv updatefitimage 'sf probe; sf erase 0x1280000 0x2300000; tftpboot 0x100000 ${fitimagefile}; sf write 0x100000 0x1280000 ${filesize}'
-setenv updatespare 'sf probe; sf erase 0x2B80000 0x1400000; tftpboot 0x100000 ${sparefile}; sf write 0x100000 0x2B80000 ${filesize}'
-setenv updatebootscr 'sf probe; sf erase 0x3F80000 0x80000; tftpboot 0x100000 ${bootscrfile}; sf write 0x100000 0x3F80000 ${filesize}'
+setenv dtbfile system.dtb
+setenv dtbfile_offset 0x00220000
+setenv dtbfile_size 0x00040000
 
-setenv uploadbootenv 'sf probe; sf read 0x100000 0x1240000 0x40000; tftpput 0x100000 0x40000 ${serverip}:${bootenvfile}'
-setenv uploadspare 'sf probe; sf read 0x100000 0x2B80000 0x1400000; tftpput 0x100000 0x1400000 ${serverip}:${sparefile}'
+setenv plfile bamr_mdm_v5.49.bin
+setenv plfile_offset 0x00280000
+setenv plfile_size 0x02000000
 
-setenv bootfitimage 'tftpboot 0x10000000 ${fitimagefile}; bootm 0x10000000'
-setenv bootramdisk 'tftpboot 0x00200000 ${kernelfile}; tftpboot 0x04000000 ${ramdiskfile}; booti 0x00200000 0x04000000 0x00100000'
+setenv kernelfile Image.gz
+setenv kernelfile_offset 0x02280000
+setenv kernelfile_size 0x00A00000
+
+setenv ramfsfile rootfs.cpio.gz.u-boot
+setenv ramfsfile_offset 0x02C80000
+setenv ramfsfile_size 0x00F00000
+
+setenv sparefile spare.jffs2
+setenv sparefile_offset 0x03B80000
+setenv sparefile_size 0x04480000
+
+
+setenv boot_targets     'mmc0 qspi'
+setenv bootcmd          'for target in ${boot_targets}; do echo "Load boot images from ${target}"; run bootcmd_${target}; done'
+setenv bootargs_ram     'setenv bootargs earlycon console=ttyPS0,115200 clk_ignore_unused root=/dev/ram rw rootwait'
+setenv bootargs_mmc     'setenv bootargs earlycon console=ttyPS0,115200 clk_ignore_unused root=/dev/mmcblk0p2 rw rootwait'
+setenv bootfrom_sf      'sf probe 0 0 0; sf read ${loadaddr} ${plfile_offset} ${plfile_size}; fpga load 0 ${loadaddr} ${plfile_realsize}; sf read 0x100000 ${dtbfile_offset} ${dtbfile_size}; sf read 0x200000 ${kernelfile_offset} ${kernelfile_size}; sf read 0x4000000 ${ramfsfile_offset} ${ramfsfile_size}'
+setenv bootfrom_tftp    'tftpboot ${loadaddr} ${tftpdir}/${plfile}; fpga load 0 ${loadaddr} ${filesize}; tftpboot 0x100000 ${tftpdir}/${dtbfile}; tftpboot 0x200000 ${tftpdir}/${kernelfile}; tftpboot 0x4000000 ${tftpdir}/${ramfsfile}'
+
+setenv bootcmd_qspi     'run bootargs_ram; run bootfrom_sf; booti 0x200000 0x4000000 0x100000'
+setenv bootcmd_mmc0     'run bootargs_mmc; run bootfrom_sf; booti 0x200000 - 0x100000'
+
+setenv bootcmd_qspi_net 'run bootargs_ram; run bootfrom_tftp; booti 0x200000 0x4000000 0x100000'
+setenv bootcmd_mmc0_net 'run bootargs_mmc; run bootfrom_tftp; booti 0x200000 - 0x100000'
+
+
+setenv updatecmd        'sf probe 0 0 0; sf erase ${targetfile_offset} ${targetfile_size}; tftpboot 0x100000 ${tftpdir}/${targetfile}; sf write 0x100000 ${targetfile_offset} ${filesize}; run updatesize'
+setenv uploadcmd        'sf probe 0 0 0; sf read 0x100000 ${targetfile_offset} ${targetfile_size}; tftpput 0x100000 ${targetfile_size} ${serverip}:${tftpdir}/new_${targetfile}'
+setenv updatesize       'setenv ${targetname}_realsize ${filesize}; saveenv'
+
+setenv update_targets   'boot dtb pl kernel ramfs'
+setenv update_all       'for target in ${update_targets}; do echo "Update an image for ${target}"; run update_${target}; done'
+setenv update_boot      'setenv targetname bootfile; setenv targetfile ${bootfile}; setenv targetfile_offset ${bootfile_offset}; setenv targetfile_size ${bootfile_size}; run updatecmd'
+setenv update_bootenv   'setenv targetname bootenvfile; setenv targetfile ${bootenvfile}; setenv targetfile_offset ${bootenvfile_offset}; setenv targetfile_size ${bootenvfile_size}; run updatecmd'
+setenv update_bootscr   'setenv targetname bootscrfile; setenv targetfile ${bootscrfile}; setenv targetfile_offset ${bootscrfile_offset}; setenv targetfile_size ${bootscrfile_size}; run updatecmd'
+setenv update_dtb       'setenv targetname dtbfile; setenv targetfile ${dtbfile}; setenv targetfile_offset ${dtbfile_offset}; setenv targetfile_size ${dtbfile_size}; run updatecmd'
+setenv update_pl        'setenv targetname plfile; setenv targetfile ${plfile}; setenv targetfile_offset ${plfile_offset}; setenv targetfile_size ${plfile_size}; run updatecmd'
+setenv update_kernel    'setenv targetname kernelfile; setenv targetfile ${kernelfile}; setenv targetfile_offset ${kernelfile_offset}; setenv targetfile_size ${kernelfile_size}; run updatecmd'
+setenv update_ramfs     'setenv targetname ramfsfile; setenv targetfile ${ramfsfile}; setenv targetfile_offset ${ramfsfile_offset}; setenv targetfile_size ${ramfsfile_size}; run updatecmd'
+setenv update_spare     'setenv targetname sparefile; setenv targetfile ${sparefile}; setenv targetfile_offset ${sparefile_offset}; setenv targetfile_size ${sparefile_size}; run updatecmd'
+
+setenv upload_all       'setenv targetname bootbin; setenv targetfile ${bootbin}; setenv targetfile_offset 0x0; setenv targetfile_size 0x8000000; run uploadcmd'
+setenv upload_boot      'setenv targetname bootfile; setenv targetfile ${bootfile}; setenv targetfile_offset ${bootfile_offset}; setenv targetfile_size ${bootfile_size}; run uploadcmd'
+setenv upload_bootenv   'setenv targetname bootenvfile; setenv targetfile ${bootenvfile}; setenv targetfile_offset ${bootenvfile_offset}; setenv targetfile_size ${bootenvfile_size}; run uploadcmd'
+setenv upload_spare     'setenv targetname sparefile; setenv targetfile ${sparefile}; setenv targetfile_offset ${sparefile_offset}; setenv targetfile_size ${sparefile_size}; run uploadcmd'
