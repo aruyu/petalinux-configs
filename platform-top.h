@@ -28,6 +28,7 @@
     "serverip=192.168.0.80\0" \
     "tftpdir=bamr\0" \
     \
+    \
     "bootbin=BOOT.BIN\0" \
     "fitimagefile=image.ub\0" \
     "jffsfile=rootfs.jffs2\0" \
@@ -43,6 +44,7 @@
     "bootscrfile=boot.scr\0" \
     "bootscrfile_offset=0x00200000\0" \
     "bootscrfile_size=0x00020000\0" \
+    "script_size_f=${bootscrfile_size}\0" \
     \
     "dtbfile=system.dtb\0" \
     "dtbfile_offset=0x00220000\0" \
@@ -65,26 +67,28 @@
     "sparefile_size=0x04480000\0" \
     \
     \
-    "boot_targets=mmc0 qspi\0" \
-    "bootcmd=for target in ${boot_targets}; do echo 'Load boot images from ${target}'; run bootcmd_${target}; done\0" \
+    "bootcmd=run distro_bootcmd\0" \
+    "boot_targets=mmc0 qspi0\0" \
+    "distro_bootcmd=for target in ${boot_targets}; do echo; echo Load boot images from ${target}; run bootcmd_${target}; done\0" \
+    \
     "bootargs_ram=setenv bootargs earlycon console=ttyPS0,115200 clk_ignore_unused root=/dev/ram rw rootwait\0" \
     "bootargs_mmc=setenv bootargs earlycon console=ttyPS0,115200 clk_ignore_unused root=/dev/mmcblk0p2 rw rootwait\0" \
-    "bootfrom_sf=sf probe 0 0 0; sf read ${loadaddr} ${plfile_offset} ${plfile_size}; fpga load 0 ${loadaddr} ${plfile_realsize}; sf read 0x100000 ${dtbfile_offset} ${dtbfile_size}; sf read 0x200000 ${kernelfile_offset} ${kernelfile_size}; sf read 0x4000000 ${ramfsfile_offset} ${ramfsfile_size}\0" \
+    "bootfrom_sf=sf probe 0 0 0; sf read ${loadaddr} ${plfile_offset} ${plfile_size}; fpga load 0 ${loadaddr} ${plfile_size}; sf read 0x100000 ${dtbfile_offset} ${dtbfile_size}; sf read 0x200000 ${kernelfile_offset} ${kernelfile_size}; sf read 0x4000000 ${ramfsfile_offset} ${ramfsfile_size}\0" \
     "bootfrom_tftp=tftpboot ${loadaddr} ${tftpdir}/${plfile}; fpga load 0 ${loadaddr} ${filesize}; tftpboot 0x100000 ${tftpdir}/${dtbfile}; tftpboot 0x200000 ${tftpdir}/${kernelfile}; tftpboot 0x4000000 ${tftpdir}/${ramfsfile}\0" \
     \
-    "bootcmd_qspi=run bootargs_ram; run bootfrom_sf; booti 0x200000 0x4000000 0x100000\0" \
+    "bootcmd_qspi0=run bootargs_ram; run bootfrom_sf; booti 0x200000 0x4000000 0x100000\0" \
     "bootcmd_mmc0=run bootargs_mmc; run bootfrom_sf; booti 0x200000 - 0x100000\0" \
     \
-    "bootcmd_qspi_net=run bootargs_ram; run bootfrom_tftp; booti 0x200000 0x4000000 0x100000\0" \
+    "bootcmd_qspi0_net=run bootargs_ram; run bootfrom_tftp; booti 0x200000 0x4000000 0x100000\0" \
     "bootcmd_mmc0_net=run bootargs_mmc; run bootfrom_tftp; booti 0x200000 - 0x100000\0" \
     \
     \
     "updatecmd=sf probe 0 0 0; sf erase ${targetfile_offset} ${targetfile_size}; tftpboot 0x100000 ${tftpdir}/${targetfile}; sf write 0x100000 ${targetfile_offset} ${filesize}; run updatesize\0" \
     "uploadcmd=sf probe 0 0 0; sf read 0x100000 ${targetfile_offset} ${targetfile_size}; tftpput 0x100000 ${targetfile_size} ${serverip}:${tftpdir}/new_${targetfile}\0" \
-    "updatesize=setenv ${targetname}_realsize ${filesize}; saveenv\0" \
+    "updatesize=setenv ${targetname}_size ${filesize}; saveenv\0" \
     \
     "update_targets=boot dtb pl kernel ramfs\0" \
-    "update_all=for target in ${update_targets}; do echo 'Update an image for ${target}'; run update_${target}; done\0" \
+    "update_all=for target in ${update_targets}; do echo; echo Update an image for ${target}; run update_${target}; done\0" \
     "update_boot=setenv targetname bootfile; setenv targetfile ${bootfile}; setenv targetfile_offset ${bootfile_offset}; setenv targetfile_size ${bootfile_size}; run updatecmd\0" \
     "update_bootenv=setenv targetname bootenvfile; setenv targetfile ${bootenvfile}; setenv targetfile_offset ${bootenvfile_offset}; setenv targetfile_size ${bootenvfile_size}; run updatecmd\0" \
     "update_bootscr=setenv targetname bootscrfile; setenv targetfile ${bootscrfile}; setenv targetfile_offset ${bootscrfile_offset}; setenv targetfile_size ${bootscrfile_size}; run updatecmd\0" \
