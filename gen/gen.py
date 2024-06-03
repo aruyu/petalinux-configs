@@ -20,7 +20,13 @@ class GenerateEnv:
 
   def __init__(self, input):
     self.input = input
-    self.gen_string = self.make_front() + self.make_back()
+    self.state = False
+
+    try:
+      self.gen_string = self.make_front() + self.make_back()
+      self.state = True
+    except:
+      print("'{0}': No such file or directory".format(self.input))
 
   def make_front(self):
     """ Function to Make Front """
@@ -66,25 +72,30 @@ class GenerateEnv:
       if line.startswith("setenv "):
         tmp = line.split()
         back.append("    \"" + tmp[1] + '=')
+        cnt = len(tmp)
 
-        if tmp[2].startswith('\"') or tmp[2].startswith('\''):
-          cnt = len(tmp)
-
-          for index, value in enumerate(tmp):
-            if index == 2:
+        for index, value in enumerate(tmp):
+          if index == 2:
+            if value.startswith('\"') or value.startswith('\''):
               back.append(value[1:] + ' ')
-            elif index > 2:
-              back.append(value + ' ')
+            else:
+              if cnt != 3:
+                back.append(value + ' ')
+              else:
+                back.append(value)
 
-          back[-1] = back[-1][:-2]
+          elif index > 2 and index < cnt-1:
+            back.append(value + ' ')
 
-        else:
-          cnt = len(tmp[2])
-          back.append(tmp[2][:cnt])
+          elif index == cnt-1:
+            if ('\"' in value) or ('\'' in value):
+              back.append(value[:-1])
+            else:
+              back.append(value)
 
         back.append("\\0\" " + lf)
 
-      elif line.startswith("\n") or tmp.startswith("\r") or tmp.startswith("\r\n") or tmp.startswith("\n\r"):
+      elif line.startswith("\n") or line.startswith("\r"):
         back.append("    " + lf)
 
     back.append("\n#endif")
@@ -98,13 +109,14 @@ class GenerateEnv:
   def save_file(self, output):
     """ Function to Save File """
 
-    try:
-      output_file = open(output, 'w')
-    except:
-      print("No such file or directory.")
-    else:
-      output_file.write(self.gen_string)
-      output_file.close()
+    if self.state:
+      try:
+        output_file = open(output, 'w')
+      except:
+        print("'{0}': No such file or directory".format(output))
+      else:
+        output_file.write(self.gen_string)
+        output_file.close()
 
 
 if __name__ == "__main__":
