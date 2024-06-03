@@ -1,3 +1,4 @@
+#--------------------------------------------------#
 64x8, 512Mib (64MiB)
 0x0 ~ 0x04000000
 
@@ -30,9 +31,46 @@ mtd4:	0x03F80000	0x00080000	0x00010000	"bootsrc"
 
 
 
+
+#--------------------------------------------------#
+64x8, 512Mib (64MiB) * 2
+0x00000000 ~ 0x04000000
+0x04000000 ~ 0x08000000
+
+
+### SysVinit ###
+dev:	offset		size		erasesize	name
+mtd0:	0x00000000	0x02640000	0x00020000	"boot"
+mtd1:	0x02640000	0x00040000	0x00020000	"bootenv"
+mtd2:	0x02680000	0x00A00000	0x00020000	"kernel"
+mtd3:	0x03080000	0x00F00000	0x00020000	"rootfs"
+mtd4:	0x03F80000	0x00080000	0x00020000	"bootsrc"
+mtd5:	0x04000000	0x04000000	0x00020000	"spare"
+
+### BAMR MDM ###
+dev:	offset		size		erasesize	name
+mtd0:	0x00000000	0x00200000	0x00020000	"boot"
+mtd1:	0x00200000	0x00020000	0x00020000	"reserve"
+mtd2:	0x00220000	0x00040000	0x00020000	"boot-dtb"
+mtd3:	0x00260000	0x00020000	0x00020000	"boot-env"
+mtd4:	0x00280000	0x02000000	0x00020000	"boot-pl"
+mtd5:	0x02280000	0x00A00000	0x00020000	"kernel"
+mtd6:	0x02C80000	0x00F00000	0x00020000	"rootfs"
+mtd7:	0x03B80000	0x04480000	0x00020000	"spare"
+
+
+
+
+#--------------------------------------------------#
+### BACKUP ###
 0x000000000000-0x000001e00000 : "qspi-boot"
 0x000001e00000-0x000001e40000 : "qspi-bootenv"
 0x000001e40000-0x000004240000 : "qspi-kernel"
 
 sf probe; sf erase 0 0x1e00000; tftpboot 0x100000 uboot.bin; sf write 0x100000 0 ${filesize}
 sf probe; sf erase 0x1e00000 0x40000; tftpboot 0x100000 uboot.env; sf write 0x100000 0x1e00000 ${filesize}
+sf probe; sf read 0x100000 0x0 0x8000000; tftpput 0x100000 0x8000000 ${serverip}:BOOT.BIN
+sf probe; sf read 0x100000 0x00260000 0x00020000; tftpput 0x100000 0x00020000 ${serverip}:uboot.env
+
+sf probe; sf erase 0 0x200000; tftpboot 0x100000 uboot.bin; sf write 0x100000 0 ${filesize}
+setenv bootargs earlycon console=ttyPS0,115200 clk_ignore_unused root=/dev/ram rw rootwait; tftpboot ${loadaddr} bamr/bamr_mdm_v5.49.bin; fpga load 0 ${loadaddr} ${filesize}; tftpboot 100000 bamr/system.dtb; tftpboot 200000 bamr/Image.gz; tftpboot 4000000 bamr/rootfs.cpio.gz.u-boot; booti 200000 4000000 100000
