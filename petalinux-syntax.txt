@@ -27,6 +27,9 @@ petalinux-config --get-hw-description <user-fpga-directory>
 		(petalinux-image-minimal)
 		(petalinux-initramfs-image)
 	ext2. Firmware Version Configuration
+	ext3-1. Yocto Settings → Add pre-mirror url (/downloads),
+	ext3-2. Yocto Settings → Local sstate feeds settings (/aarch64)
+	(file://.*/.*)
 
 petalinux-config -c u-boot
 	1. ARM architecture: Boot script offset
@@ -36,20 +39,29 @@ petalinux-config -c u-boot
 
 petalinux-config -c kernel (JFFS2)
 	1. File systems → Miscellaneous filesystems → [ ] JFFS2 summary support (disable)
+	2. File systems → Miscellaneous filesystems → [ ] JFFS2 XATTR support (disable)
 
 petalinux-config -c rootfs
-	1. Image Features -> Init-manager (sysvinit or systemd)
-	ext. PetaLinux RootFS Settings (busybox)
 
 cat >> ./project-spec/meta-user/conf/petalinuxbsp.conf <<-EOF
 	INIT_MANAGER_DEFAULT:forcevariable = "sysvinit"
 EOF
+cat >> ./project-spec/meta-user/conf/user-rootfsconfig <<-EOF
+	CONFIG_libubootenv
+	CONFIG_libubootenv-bin
+	CONFIG_updatetools
+EOF
+
+	1. Image Features -> Init-manager (sysvinit or systemd)
+	2. user packages -> (libubootenv, libubootenv-bin)
+	ext. PetaLinux RootFS Settings (enable busybox)
 
 petalinux-config -c busybox
 	ext. PetaLinux RootFS busybox Settings (flashcp)
 
 
-vi ./project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi		#if need
+vi ./project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi #if need
+vi ./project-spec/meta-user/recipes-bsp/u-boot/files/platform-top.h        #if need
 petalinux-build
 
 
