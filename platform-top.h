@@ -44,6 +44,7 @@
     "bootscrfile=boot.scr\0" \
     "bootscrfile_offset=0x00200000\0" \
     "bootscrfile_size=0x00020000\0" \
+    "script_offset_f=${bootscrfile_offset}\0" \
     "script_size_f=${bootscrfile_size}\0" \
     \
     "dtbfile=system.dtb\0" \
@@ -73,19 +74,20 @@
     \
     "bootargs_ram=setenv bootargs earlycon console=ttyPS0,115200 clk_ignore_unused root=/dev/ram rw rootwait\0" \
     "bootargs_mmc=setenv bootargs earlycon console=ttyPS0,115200 clk_ignore_unused root=/dev/mmcblk0p2 rw rootwait\0" \
-    "bootfrom_sf=sf probe 0 0 0; sf read ${loadaddr} ${plfile_offset} ${plfile_size}; fpga load 0 ${loadaddr} ${plfile_size}; sf read 0x100000 ${dtbfile_offset} ${dtbfile_size}; sf read 0x200000 ${kernelfile_offset} ${kernelfile_size}; sf read 0x4000000 ${ramfsfile_offset} ${ramfsfile_size}\0" \
+    "bootfrom_sf=sf probe 0 0 0; sf read ${loadaddr} ${plfile_offset} ${plfile_size}; fpga load 0 ${loadaddr} ${plfile_realsize}; sf read 0x100000 ${dtbfile_offset} ${dtbfile_size}; sf read 0x200000 ${kernelfile_offset} ${kernelfile_size}; sf read 0x4000000 ${ramfsfile_offset} ${ramfsfile_size}\0" \
     "bootfrom_tftp=tftpboot ${loadaddr} ${tftpdir}/${plfile}; fpga load 0 ${loadaddr} ${filesize}; tftpboot 0x100000 ${tftpdir}/${dtbfile}; tftpboot 0x200000 ${tftpdir}/${kernelfile}; tftpboot 0x4000000 ${tftpdir}/${ramfsfile}\0" \
+    "checkmmc=test -e mmc 0:2 /bin/sh\0" \
     \
     "bootcmd_qspi0=run bootargs_ram; run bootfrom_sf; booti 0x200000 0x4000000 0x100000\0" \
-    "bootcmd_mmc0=run bootargs_mmc; run bootfrom_sf; booti 0x200000 - 0x100000\0" \
+    "bootcmd_mmc0=run bootargs_mmc; run bootfrom_sf; run checkmmc; if test $? = 0; then booti 0x200000 - 0x100000; else echo Rootfs not found; fi\0" \
     \
     "bootcmd_qspi0_net=run bootargs_ram; run bootfrom_tftp; booti 0x200000 0x4000000 0x100000\0" \
-    "bootcmd_mmc0_net=run bootargs_mmc; run bootfrom_tftp; booti 0x200000 - 0x100000\0" \
+    "bootcmd_mmc0_net=run bootargs_mmc; run bootfrom_tftp; run checkmmc; if test $? = 0; then booti 0x200000 - 0x100000; else echo Rootfs not found; fi\0" \
     \
     \
     "updatecmd=sf probe 0 0 0; sf erase ${targetfile_offset} ${targetfile_size}; tftpboot 0x100000 ${tftpdir}/${targetfile}; sf write 0x100000 ${targetfile_offset} ${filesize}; run updatesize\0" \
     "uploadcmd=sf probe 0 0 0; sf read 0x100000 ${targetfile_offset} ${targetfile_size}; tftpput 0x100000 ${targetfile_size} ${serverip}:${tftpdir}/new_${targetfile}\0" \
-    "updatesize=setenv ${targetname}_size ${filesize}; saveenv\0" \
+    "updatesize=setenv ${targetname}_realsize ${filesize}; saveenv\0" \
     \
     "update_targets=boot dtb pl kernel ramfs\0" \
     "update_all=for target in ${update_targets}; do echo; echo Update an image for ${target}; run update_${target}; done\0" \
