@@ -44,8 +44,8 @@
     "bootscrfile=boot.scr\0" \
     "bootscrfile_offset=0x00200000\0" \
     "bootscrfile_size=0x00020000\0" \
-    "script_offset_f=${bootscrfile_offset}\0" \
-    "script_size_f=${bootscrfile_size}\0" \
+    "script_offset_f=0x00200000\0" \
+    "script_size_f=0x00020000\0" \
     \
     "dtbfile=system.dtb\0" \
     "dtbfile_offset=0x00220000\0" \
@@ -54,7 +54,7 @@
     "plfile=bamr_mdm_v5.49.bin\0" \
     "plfile_offset=0x00280000\0" \
     "plfile_size=0x02000000\0" \
-    "plfile_realsize=${plfile_size}\0" \
+    "plfile_realsize=0x02000000\0" \
     \
     "kernelfile=Image.gz\0" \
     "kernelfile_offset=0x02280000\0" \

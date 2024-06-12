@@ -20,8 +20,8 @@ setenv bootenvfile_size 0x00020000
 setenv bootscrfile boot.scr
 setenv bootscrfile_offset 0x00200000
 setenv bootscrfile_size 0x00020000
-setenv script_offset_f ${bootscrfile_offset}
-setenv script_size_f ${bootscrfile_size}
+setenv script_offset_f 0x00200000
+setenv script_size_f 0x00020000
 
 setenv dtbfile system.dtb
 setenv dtbfile_offset 0x00220000
@@ -30,7 +30,7 @@ setenv dtbfile_size 0x00040000
 setenv plfile bamr_mdm_v5.49.bin
 setenv plfile_offset 0x00280000
 setenv plfile_size 0x02000000
-setenv plfile_realsize ${plfile_size}
+setenv plfile_realsize 0x02000000
 
 setenv kernelfile Image.gz
 setenv kernelfile_offset 0x02280000
