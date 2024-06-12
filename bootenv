@@ -30,6 +30,7 @@ setenv dtbfile_size 0x00040000
 setenv plfile bamr_mdm_v5.49.bin
 setenv plfile_offset 0x00280000
 setenv plfile_size 0x02000000
+setenv plfile_realsize ${plfile_size}
 
 setenv kernelfile Image.gz
 setenv kernelfile_offset 0x02280000
@@ -45,20 +46,23 @@ setenv sparefile_size 0x04480000
 
 
 setenv bootcmd           'run distro_bootcmd'
-setenv boot_targets      'mmc0 qspi0'
+setenv boot_targets      'mmc0 qspi0 recovery'
 setenv distro_bootcmd    'for target in ${boot_targets}; do echo; echo Load boot images from ${target}; run bootcmd_${target}; done'
 
 setenv bootargs_ram      'setenv bootargs earlycon console=ttyPS0,115200 clk_ignore_unused root=/dev/ram rw rootwait'
 setenv bootargs_mmc      'setenv bootargs earlycon console=ttyPS0,115200 clk_ignore_unused root=/dev/mmcblk0p2 rw rootwait'
 setenv bootfrom_sf       'sf probe 0 0 0; sf read ${loadaddr} ${plfile_offset} ${plfile_size}; fpga load 0 ${loadaddr} ${plfile_realsize}; sf read 0x100000 ${dtbfile_offset} ${dtbfile_size}; sf read 0x200000 ${kernelfile_offset} ${kernelfile_size}; sf read 0x4000000 ${ramfsfile_offset} ${ramfsfile_size}'
 setenv bootfrom_tftp     'tftpboot ${loadaddr} ${tftpdir}/${plfile}; fpga load 0 ${loadaddr} ${filesize}; tftpboot 0x100000 ${tftpdir}/${dtbfile}; tftpboot 0x200000 ${tftpdir}/${kernelfile}; tftpboot 0x4000000 ${tftpdir}/${ramfsfile}'
-setenv checkmmc          'test -e mmc 0:2 /bin/sh'
+setenv bootfrom_mmc      'fatload mmc 0:1 ${loadaddr} /${plfile}; fpga load 0 ${loadaddr} ${plfile_size}; fatload mmc 0:1 0x100000 /${dtbfile}; fatload mmc 0:1 0x200000 /${kernelfile}; fatload mmc 0:1 0x4000000 /${ramfsfile}'
+setenv checkmmc1         'if test -e mmc 0:1 /${plfile} && test -e mmc 0:1 /${dtbfile} && test -e mmc 0:1 /${kernelfile} && test -e mmc 0:1 /${ramfsfile}; then setenv status true; else setenv status false; fi'
+setenv checkmmc2         'if test -e mmc 0:2 /bin/sh; then setenv status true; else setenv status false; fi'
 
 setenv bootcmd_qspi0     'run bootargs_ram; run bootfrom_sf; booti 0x200000 0x4000000 0x100000'
-setenv bootcmd_mmc0      'run bootargs_mmc; run bootfrom_sf; run checkmmc; if test $? = 0; then booti 0x200000 - 0x100000; else echo Rootfs not found; fi'
+setenv bootcmd_mmc0      'run bootargs_mmc; run checkmmc2; if test ${status} = true; then run bootfrom_sf; booti 0x200000 - 0x100000; else echo Rootfs not found in mmc 0:2; fi'
+setenv bootcmd_recovery  'run bootargs_ram; run checkmmc1; if test ${status} = true; then run bootfrom_mmc; booti 0x200000 0x4000000 0x100000; else echo Recovery images not found in mmc 0:1; fi'
 
 setenv bootcmd_qspi0_net 'run bootargs_ram; run bootfrom_tftp; booti 0x200000 0x4000000 0x100000'
-setenv bootcmd_mmc0_net  'run bootargs_mmc; run bootfrom_tftp; run checkmmc; if test $? = 0; then booti 0x200000 - 0x100000; else echo Rootfs not found; fi'
+setenv bootcmd_mmc0_net  'run bootargs_mmc; run checkmmc2; if test ${status} = true; then run bootfrom_tftp; booti 0x200000 - 0x100000; else echo Rootfs not found in mmc 0:2; fi'
 
 
 setenv updatecmd         'sf probe 0 0 0; sf erase ${targetfile_offset} ${targetfile_size}; tftpboot 0x100000 ${tftpdir}/${targetfile}; sf write 0x100000 ${targetfile_offset} ${filesize}; run updatesize'
@@ -79,4 +83,5 @@ setenv update_spare      'setenv targetname sparefile; setenv targetfile ${spare
 setenv upload_all        'setenv targetname bootbin; setenv targetfile ${bootbin}; setenv targetfile_offset 0x0; setenv targetfile_size 0x8000000; run uploadcmd'
 setenv upload_boot       'setenv targetname bootfile; setenv targetfile ${bootfile}; setenv targetfile_offset ${bootfile_offset}; setenv targetfile_size ${bootfile_size}; run uploadcmd'
 setenv upload_bootenv    'setenv targetname bootenvfile; setenv targetfile ${bootenvfile}; setenv targetfile_offset ${bootenvfile_offset}; setenv targetfile_size ${bootenvfile_size}; run uploadcmd'
+setenv update_bootscr    'setenv targetname bootscrfile; setenv targetfile ${bootscrfile}; setenv targetfile_offset ${bootscrfile_offset}; setenv targetfile_size ${bootscrfile_size}; run uploadcmd'
 setenv upload_spare      'setenv targetname sparefile; setenv targetfile ${sparefile}; setenv targetfile_offset ${sparefile_offset}; setenv targetfile_size ${sparefile_size}; run uploadcmd'

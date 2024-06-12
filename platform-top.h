@@ -54,6 +54,7 @@
     "plfile=bamr_mdm_v5.49.bin\0" \
     "plfile_offset=0x00280000\0" \
     "plfile_size=0x02000000\0" \
+    "plfile_realsize=${plfile_size}\0" \
     \
     "kernelfile=Image.gz\0" \
     "kernelfile_offset=0x02280000\0" \
@@ -69,20 +70,23 @@
     \
     \
     "bootcmd=run distro_bootcmd\0" \
-    "boot_targets=mmc0 qspi0\0" \
+    "boot_targets=mmc0 qspi0 recovery\0" \
     "distro_bootcmd=for target in ${boot_targets}; do echo; echo Load boot images from ${target}; run bootcmd_${target}; done\0" \
     \
     "bootargs_ram=setenv bootargs earlycon console=ttyPS0,115200 clk_ignore_unused root=/dev/ram rw rootwait\0" \
     "bootargs_mmc=setenv bootargs earlycon console=ttyPS0,115200 clk_ignore_unused root=/dev/mmcblk0p2 rw rootwait\0" \
     "bootfrom_sf=sf probe 0 0 0; sf read ${loadaddr} ${plfile_offset} ${plfile_size}; fpga load 0 ${loadaddr} ${plfile_realsize}; sf read 0x100000 ${dtbfile_offset} ${dtbfile_size}; sf read 0x200000 ${kernelfile_offset} ${kernelfile_size}; sf read 0x4000000 ${ramfsfile_offset} ${ramfsfile_size}\0" \
     "bootfrom_tftp=tftpboot ${loadaddr} ${tftpdir}/${plfile}; fpga load 0 ${loadaddr} ${filesize}; tftpboot 0x100000 ${tftpdir}/${dtbfile}; tftpboot 0x200000 ${tftpdir}/${kernelfile}; tftpboot 0x4000000 ${tftpdir}/${ramfsfile}\0" \
-    "checkmmc=test -e mmc 0:2 /bin/sh\0" \
+    "bootfrom_mmc=fatload mmc 0:1 ${loadaddr} /${plfile}; fpga load 0 ${loadaddr} ${plfile_size}; fatload mmc 0:1 0x100000 /${dtbfile}; fatload mmc 0:1 0x200000 /${kernelfile}; fatload mmc 0:1 0x4000000 /${ramfsfile}\0" \
+    "checkmmc1=if test -e mmc 0:1 /${plfile} && test -e mmc 0:1 /${dtbfile} && test -e mmc 0:1 /${kernelfile} && test -e mmc 0:1 /${ramfsfile}; then setenv status true; else setenv status false; fi\0" \
+    "checkmmc2=if test -e mmc 0:2 /bin/sh; then setenv status true; else setenv status false; fi\0" \
     \
     "bootcmd_qspi0=run bootargs_ram; run bootfrom_sf; booti 0x200000 0x4000000 0x100000\0" \
-    "bootcmd_mmc0=run bootargs_mmc; run bootfrom_sf; run checkmmc; if test $? = 0; then booti 0x200000 - 0x100000; else echo Rootfs not found; fi\0" \
+    "bootcmd_mmc0=run bootargs_mmc; run checkmmc2; if test ${status} = true; then run bootfrom_sf; booti 0x200000 - 0x100000; else echo Rootfs not found in mmc 0:2; fi\0" \
+    "bootcmd_recovery=run bootargs_ram; run checkmmc1; if test ${status} = true; then run bootfrom_mmc; booti 0x200000 0x4000000 0x100000; else echo Recovery images not found in mmc 0:1; fi\0" \
     \
     "bootcmd_qspi0_net=run bootargs_ram; run bootfrom_tftp; booti 0x200000 0x4000000 0x100000\0" \
-    "bootcmd_mmc0_net=run bootargs_mmc; run bootfrom_tftp; run checkmmc; if test $? = 0; then booti 0x200000 - 0x100000; else echo Rootfs not found; fi\0" \
+    "bootcmd_mmc0_net=run bootargs_mmc; run checkmmc2; if test ${status} = true; then run bootfrom_tftp; booti 0x200000 - 0x100000; else echo Rootfs not found in mmc 0:2; fi\0" \
     \
     \
     "updatecmd=sf probe 0 0 0; sf erase ${targetfile_offset} ${targetfile_size}; tftpboot 0x100000 ${tftpdir}/${targetfile}; sf write 0x100000 ${targetfile_offset} ${filesize}; run updatesize\0" \
@@ -103,6 +107,7 @@
     "upload_all=setenv targetname bootbin; setenv targetfile ${bootbin}; setenv targetfile_offset 0x0; setenv targetfile_size 0x8000000; run uploadcmd\0" \
     "upload_boot=setenv targetname bootfile; setenv targetfile ${bootfile}; setenv targetfile_offset ${bootfile_offset}; setenv targetfile_size ${bootfile_size}; run uploadcmd\0" \
     "upload_bootenv=setenv targetname bootenvfile; setenv targetfile ${bootenvfile}; setenv targetfile_offset ${bootenvfile_offset}; setenv targetfile_size ${bootenvfile_size}; run uploadcmd\0" \
+    "update_bootscr=setenv targetname bootscrfile; setenv targetfile ${bootscrfile}; setenv targetfile_offset ${bootscrfile_offset}; setenv targetfile_size ${bootscrfile_size}; run uploadcmd\0" \
     "upload_spare=setenv targetname sparefile; setenv targetfile ${sparefile}; setenv targetfile_offset ${sparefile_offset}; setenv targetfile_size ${sparefile_size}; run uploadcmd\0" \
 
 #endif
