@@ -25,8 +25,9 @@ class GenerateEnv:
     try:
       self.gen_string = self.make_front() + self.make_back()
       self.state = True
-    except:
-      print("'{0}': No such file or directory".format(self.input))
+    except Exception as error:
+      print("'{0}': {1}".format(__file__, error))
+      exit(-1)
 
   def make_front(self):
     """ Function to Make Front """
@@ -66,39 +67,81 @@ class GenerateEnv:
 
     lf = "\\\n"
 
-    input_file = open(self.input, 'r')
+    try:
+      input_file = open(self.input, 'rt')
+    except:
+      print("'{0}': No such file or directory".format(self.input))
+      exit(-1)
+
+
+    continued = False
+    skip = False
 
     for line in input_file.readlines():
-      if line.startswith("setenv "):
-        tmp = line.split()
-        back.append("    \"" + tmp[1] + '=')
-        cnt = len(tmp)
+      #### Normal ####
+      if not continued:
 
-        for index, value in enumerate(tmp):
-          if index == 2:
-            if value.startswith('\"') or value.startswith('\''):
-              back.append(value[1:] + ' ')
-            else:
-              if cnt != 3:
-                back.append(value + ' ')
+        ## value exist ##
+        if line.startswith("setenv "):
+          tmp = line.split()
+          cnt = len(tmp)
+          quote = False
+
+          back.append("    \"" + tmp[1] + '=')
+
+          for index, value in enumerate(tmp):
+            if index == 2:
+              if value.startswith('\"') or value.startswith('\''):
+                back.append(value[1:] + ' ')
+                quote = True
+              else:
+                if cnt != 3:
+                  back.append(value + ' ')
+                else:
+                  back.append(value)
+
+            elif index > 2 and index < cnt-1:
+              back.append(value + ' ')
+
+            elif index == cnt-1:
+              if quote:
+                if ('\"' in value) or ('\'' in value):
+                  back.append(value[:-1])
+                else:
+                  back.append(value + ' ')
+                  continued = True
               else:
                 back.append(value)
 
-          elif index > 2 and index < cnt-1:
+          if not continued:
+            back.append("\\0\" " + lf)
+
+        ## no value ##
+        elif line.startswith("\n") or line.startswith("\r"):
+          if not skip:
+            back.append("    " + lf)
+          else:
+            skip = False
+
+      #### Continued ####
+      else:
+        tmp = line.split()
+        cnt = len(tmp)
+
+        for value in tmp:
+          if ('\"' in value) or ('\'' in value):
+            back.append(value[:-1])
+            continued = False
+          else:
             back.append(value + ' ')
+            continued = True
 
-          elif index == cnt-1:
-            if ('\"' in value) or ('\'' in value):
-              back.append(value[:-1])
-            else:
-              back.append(value)
+        if not continued:
+          back.append("\\0\" " + lf)
+          skip = True
 
-        back.append("\\0\" " + lf)
 
-      elif line.startswith("\n") or line.startswith("\r"):
-        back.append("    " + lf)
-
-    back.append("\n#endif")
+    back.append("\n#endif\n")
     input_file.close()
 
     for i in range(len(back)):
@@ -111,9 +154,10 @@ class GenerateEnv:
 
     if self.state:
       try:
-        output_file = open(output, 'w')
+        output_file = open(output, 'wt')
       except:
         print("'{0}': No such file or directory".format(output))
+        exit(-1)
       else:
         output_file.write(self.gen_string)
         output_file.close()
