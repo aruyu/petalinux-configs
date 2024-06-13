@@ -2,7 +2,7 @@ setenv ipaddr 192.168.0.102
 setenv netmask 255.255.255.0
 setenv gatewayip 192.168.0.254
 setenv serverip 192.168.0.80
-setenv tftpdir bamr
+setenv tftpdir evm
 
 
 setenv bootbin BOOT.BIN
@@ -27,7 +27,7 @@ setenv dtbfile system.dtb
 setenv dtbfile_offset 0x00220000
 setenv dtbfile_size 0x00040000
 
-setenv plfile bamr_mdm_v5.49.bin
+setenv plfile system.bit
 setenv plfile_offset 0x00280000
 setenv plfile_size 0x02000000
 setenv plfile_realsize 0x02000000

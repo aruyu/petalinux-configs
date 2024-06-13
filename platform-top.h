@@ -26,7 +26,7 @@
     "netmask=255.255.255.0\0" \
     "gatewayip=192.168.0.254\0" \
     "serverip=192.168.0.80\0" \
-    "tftpdir=bamr\0" \
+    "tftpdir=evm\0" \
     \
     \
     "bootbin=BOOT.BIN\0" \
@@ -51,7 +51,7 @@
     "dtbfile_offset=0x00220000\0" \
     "dtbfile_size=0x00040000\0" \
     \
-    "plfile=bamr_mdm_v5.49.bin\0" \
+    "plfile=system.bit\0" \
     "plfile_offset=0x00280000\0" \
     "plfile_size=0x02000000\0" \
     "plfile_realsize=0x02000000\0" \
