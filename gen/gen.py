@@ -164,16 +164,27 @@ class GenerateEnv:
 
 
 if __name__ == "__main__":
-  parser = argparse.ArgumentParser(description="Generate bootenv to 'platform-top.h'\n" +
+  parser = argparse.ArgumentParser(description="Generate bootenv to \'platform-top.h\'\n" +
                                                "MIT License <https://github.com/aruyu/petalinux-configs/blob/master/LICENSE/>\n" +
                                                "Report or pull request any time. <https://github.com/aruyu/petalinux-configs/>",
                                    formatter_class=RawTextHelpFormatter)
   parser.add_argument('-i', '--input', required=True,
                       help="Input file name that want to generate.\n" +
-                           "Ex) ./bootenv")
+                           "Ex) ./bootenv\n\n" +
+                           "Format: setenv ${envname} ${envvalue}\n\n" +
+                           "        setenv ${envname} \'${envvalue1}; ${envvalue2};\'\n" +
+                           "        setenv ${envname} \'\n" +
+                           "                            ${envvalue1};\n" +
+                           "                            ${envvalue2};\n" +
+                           "                          \'\n\n" +
+                           "        setenv ${envname} \"${envvalue1}; ${envvalue2};\"\n" +
+                           "        setenv ${envname} \"\n" +
+                           "                            ${envvalue1};\n" +
+                           "                            ${envvalue2};\n" +
+                           "                          \"\n")
   parser.add_argument('-o', '--output', required=False, default="./platform-top.h",
                       help="Output file name that want to be generated.\n" +
-                           "Ex) ./platform-top.h")
+                           "Default: \'./platform-top.h\'")
   args = parser.parse_args()
 
   gen = GenerateEnv(args.input)
