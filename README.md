@@ -210,11 +210,16 @@ vi env.txt
 ```
 
 > The input file is in format:
-		key1=value1
-		key2=value2
-		...
-	Empty lines are skipped, and lines with a # in the first
-	column are treated as comments (also skipped).
+>
+> key1=value1
+>
+> key2=value2
+>
+> ...
+>
+> Empty lines are skipped, and lines with a # in the first
+>
+> column are treated as comments (also skipped).
 
 ``` bash
 mkenvimage -s <env-size> -o <env-name> env.txt
