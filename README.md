@@ -14,7 +14,7 @@ Included python program that Auto Generating *"platform-top.h"*.
 
 ``` bash
 sudo dpkg --add-architecture i386 && sudo apt-get update
-sudo apt install tofrodos gawk xvfb git libncurses5-dev tftpd zlib1g-dev zlib1g-dev:i386 libssl-dev flex bison chrpath socat autoconf libtool texinfo gcc-multilib libsdl1.2-dev libglib2.0-dev screen pax xterm bc
+sudo apt install tofrodos gawk xvfb git libncurses5-dev tftpd zlib1g-dev zlib1g-dev:i386 libssl-dev flex bison chrpath socat autoconf libtool texinfo gcc-multilib libsdl1.2-dev libglib2.0-dev screen pax xterm bc build-essential
 
 ./petalinux-<petalinux-version>-installer.run -d ./petalinux-build/
 source ./petalinux-build/settings.sh
