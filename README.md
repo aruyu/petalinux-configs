@@ -101,7 +101,7 @@ petalinux-config -c u-boot
 ### Kernel Menuconfig
 
 ``` bash
-petalinux-config -c kernel (JFFS2)
+petalinux-config -c kernel
 ```
 
 1. File systems → Miscellaneous filesystems → [ ] JFFS2 summary support (disable)
