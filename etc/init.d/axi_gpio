@@ -1,0 +1,86 @@
+#!/bin/bash
+#==
+#   NOTE      - axi_gpio
+#   Author    - Chae Lee-Jin
+#
+#   Created   - 2024.10.29
+#   Website   - http://www.solidwintech.co.kr
+#   Contact   - chaelj@solidwt.co.kr
+#/
+
+
+
+
+#==
+#   devmem version
+#/
+
+
+if [[ $1 == "" ]]; then
+  echo "usage: axi_gpio <gpio_number> <high/low>"
+  exit 1
+fi
+
+
+gpio_addr=$((0xA4010000))
+gpio=$(( 1<<$1 ))
+gpio_reverse=$((~${gpio} & 0xFFFFFFFF))
+
+old_value=$(devmem ${gpio_addr})
+
+if [[ $? -ne 0 ]]; then
+  echo "memory read error!"
+  exit 1
+fi
+
+
+if [[ $2 == "high" ]]; then
+  devmem ${gpio_addr} 32 $(( old_value | ${gpio} ))
+
+elif [[ $2 == "low" ]]; then
+  devmem ${gpio_addr} 32 $(( old_value & ${gpio_reverse} ))
+
+else
+  echo "set high or low?"
+  exit 1
+fi
+
+
+
+
+#==
+#   /sys/class/gpio version
+#/
+
+
+#sys_gpio="/sys/class/gpio"
+#gpio=$(( 498 + $1 ))
+#gpio_dir="${sys_gpio}/gpio${gpio}"
+#
+#
+#if [ ! -d ${gpio_dir} ]; then
+#  echo ${gpio} > ${sys_gpio}/export
+#fi
+#
+#if [ ! -d ${gpio_dir} ]; then
+#  echo "memory read error!"
+#  exit 1
+#fi
+#
+#
+#echo out > ${gpio_dir}/direction
+#
+#if [ $2 == "high" ]; then
+#  echo 1 > ${gpio_dir}/value
+#  usleep 200000
+#  echo 0 > ${gpio_dir}/value
+#
+#elif [ $2 == "low" ]; then
+#  echo 0 > ${gpio_dir}/value
+#  usleep 200000
+#  echo 1 > ${gpio_dir}/value
+#
+#else
+#  echo "active high or low?"
+#  exit 1
+#fi
