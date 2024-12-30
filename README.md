@@ -51,14 +51,14 @@ petalinux-config --get-hw-description <user-fpga-directory>
 
 <div align="middle">
 
-![4](https://github.com/aruyu/petalinux-configs/blob/master/memorymap/1.png)
+![4](https://github.com/aruyu/petalinux-configs/blob/master/ref/memorymap/1.png)
 </div>
 
 2. u-boot Configuration → u-boot script configuration → QSPI/OSPI image offsets
 
 <div align="middle">
 
-![4](https://github.com/aruyu/petalinux-configs/blob/master/memorymap/2.png)
+![4](https://github.com/aruyu/petalinux-configs/blob/master/ref/memorymap/2.png)
 </div>
 
 * ext 1-1. Image Packaging Configuration → (INITRD or JFFS2, if=JFFS2 then=set erase_block)
@@ -84,7 +84,7 @@ petalinux-config -c u-boot
 
 <div align="middle">
 
-![4](https://github.com/aruyu/petalinux-configs/blob/master/memorymap/3.png)
+![4](https://github.com/aruyu/petalinux-configs/blob/master/ref/memorymap/3.png)
 </div>
 
 2. Environment: Environment...
@@ -93,7 +93,7 @@ petalinux-config -c u-boot
 
 <div align="middle">
 
-![4](https://github.com/aruyu/petalinux-configs/blob/master/memorymap/4.png)
+![4](https://github.com/aruyu/petalinux-configs/blob/master/ref/memorymap/4.png)
 </div>
 
 * ext. Command line interface: Shell prompt
@@ -120,6 +120,7 @@ cat >> ./project-spec/meta-user/conf/petalinuxbsp.conf <<-EOF
 EOF
 
 cat >> ./project-spec/meta-user/conf/user-rootfsconfig <<-EOF
+	CONFIG_devmem2
 	CONFIG_libubootenv
 	CONFIG_libubootenv-bin
 	CONFIG_updatetools
