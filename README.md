@@ -12,6 +12,12 @@ Included python program that Auto Generating *"platform-top.h"*.
 
 <details><summary>1.1. First initialize building enviroment</summary>
 
+### for APT (Debian series)
+
+``` bash
+sudo apt install libtinfo5 libncurses5
+```
+
 ``` bash
 sudo dpkg --add-architecture i386 && sudo apt-get update
 sudo apt install tofrodos gawk xvfb git libncurses5-dev tftpd zlib1g-dev zlib1g-dev:i386 libssl-dev flex bison chrpath socat autoconf libtool texinfo gcc-multilib libsdl1.2-dev libglib2.0-dev screen pax xterm bc build-essential
@@ -20,6 +26,13 @@ sudo apt install tofrodos gawk xvfb git libncurses5-dev tftpd zlib1g-dev zlib1g-
 source ./petalinux-build/settings.sh
 
 petalinux-create --type project --template <template, ex)zynqMP> --name <user-project-name>
+```
+
+### for PACMAN (Arch series)
+
+``` bash
+sudo pacman -S cpio inetutils libpng12 libxcrypt-compat xorg-xlsclients
+yay -S ncurses5-compat-libs fxload digilent.adept.runtime digilent.adept.utilities
 ```
 
 * * *
