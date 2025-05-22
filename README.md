@@ -33,6 +33,7 @@ petalinux-create --type project --template <template, ex)zynqMP> --name <user-pr
 ``` bash
 sudo pacman -S cpio inetutils libpng12 libxcrypt-compat xorg-xlsclients
 yay -S ncurses5-compat-libs fxload digilent.adept.runtime digilent.adept.utilities
+sudo ln -s /usr/bin/make /usr/bin/gmake
 ```
 
 * * *
