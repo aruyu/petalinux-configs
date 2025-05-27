@@ -1,10 +1,14 @@
 # petalinux-configs
 
-Configs &amp; Syntax, MemoryMaps for PetaLinux.
+1. Configs &amp; Syntax, MemoryMaps for PetaLinux.
 
-Included python program that Auto Generating *"platform-top.h"*.
+2. Also have ***Docker container composer*** for Petalinux IDE.
 
-> ***./gen/gen.py***
+- Can be used in the linux distro which is not supporting APT.
+
+3. Included python program that Auto Generating ***"platform-top.h"***.
+
+- ./gen/gen.py
 
 * * *
 
@@ -12,7 +16,7 @@ Included python program that Auto Generating *"platform-top.h"*.
 
 <details><summary>1.1. First initialize building enviroment</summary>
 
-### for APT (Debian series)
+### for APT (Debian distro)
 
 ``` bash
 sudo apt install libtinfo5 libncurses5
@@ -29,12 +33,18 @@ source ./petalinux-build/settings.sh
 petalinux-create --type project --template <template, ex)zynqMP> --name <user-project-name>
 ```
 
-### for PACMAN (Arch series)
+### for PACMAN (Arch distro)
 
 ``` bash
 sudo pacman -S cpio inetutils libpng12 libxcrypt-compat xorg-xlsclients
 yay -S ncurses5-compat-libs fxload digilent.adept.runtime digilent.adept.utilities
 sudo ln -s /usr/bin/make /usr/bin/gmake
+```
+
+``` bash
+# For Vitis execution
+mv ./lib/lnx64.o/Default/libstdc++.so.6 ./lib/lnx64.o/Default/libstdc++.so.6.old
+ln -s /usr/lib/libstdc++.so.6 ./lib/lnx64.o/Default/libstdc++.so.6
 ```
 
 * * *
