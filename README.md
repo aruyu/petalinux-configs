@@ -43,8 +43,9 @@ sudo ln -s /usr/bin/make /usr/bin/gmake
 
 ``` bash
 # For Vitis execution
-mv ./lib/lnx64.o/Default/libstdc++.so.6 ./lib/lnx64.o/Default/libstdc++.so.6.old
-ln -s /usr/lib/libstdc++.so.6 ./lib/lnx64.o/Default/libstdc++.so.6
+mv ${VITIS_PATH}/lib/lnx64.o/Default/libstdc++.so.6 ${VITIS_PATH}/lib/lnx64.o/Default/libstdc++.so.6.old
+ln -s /usr/lib/libstdc++.so.6 ${VITIS_PATH}/lib/lnx64.o/Default/libstdc++.so.6
+ln -sf ${VITIS_PATH}/tps/lnx64/cmake-3.24.2/libs/Rhel/9/* /usr/lib
 ```
 
 * * *
