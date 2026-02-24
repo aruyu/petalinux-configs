@@ -16,7 +16,7 @@
 
 <details><summary>1.1. First initialize building enviroment</summary>
 
-### for APT (Debian distro)
+### for APT (Ubuntu 18.04)
 
 ``` bash
 sudo apt install libtinfo5 libncurses5
@@ -36,8 +36,8 @@ petalinux-create --type project --template <template, ex)zynqMP> --name <user-pr
 ### for PACMAN (Arch distro)
 
 ``` bash
-sudo pacman -S cpio inetutils libpng12 libxcrypt-compat xorg-xlsclients
-yay -S ncurses5-compat-libs fxload digilent.adept.runtime digilent.adept.utilities
+sudo pacman -S --needed cpio inetutils libxcrypt-compat xorg-xlsclients
+yay -S --needed libpng12 ncurses5-compat-libs fxload digilent.adept.runtime digilent.adept.utilities
 sudo ln -s /usr/bin/make /usr/bin/gmake
 ```
 
